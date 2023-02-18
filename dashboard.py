@@ -2,26 +2,57 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import pickle
+import dill
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
+from lime import lime_tabular
+
+
+# --------------------------------------------------------------------------------------------------------------
+# FUNCTIONS
 
 def convert_age(age_days_negative):
     age_days_positive = -age_days_negative
     age_years = age_days_positive/365
     return age_years
 
+def create_tf_serving_json(data):
+  return {'inputs': {name: data[name].tolist() for name in data.keys()} if isinstance(data, dict) else data.tolist()}
+
 def inverseOHE(dataframe,pattern):
     list = dataframe.columns[dataframe.columns.str.contains(pattern) & ~dataframe.columns.str.contains("PREV")]
     cat = dataframe[list].idxmax(1).str.replace(pattern+"_","")
     return cat
 
+def request_prediction(model_uri, dataset):
+    headers = {"Content-Type": "application/json"}
+    data_json = {"dataframe_split": dataset.to_dict(orient='split')} if isinstance(dataset, pd.DataFrame) else create_tf_serving_json(dataset)
+
+    # data_json = {'data': data.to_json(orient="values")}
+    response = requests.request(
+        method='POST', headers=headers, url=model_uri, json=data_json)
+
+    if response.status_code != 200:
+        raise Exception(
+            "Request failed with status {}, {}".format(response.status_code, response.text))
+
+    return response.json()
 # --------------------------------------------------------------------------------------------------------------
 # SUPPORT LOAD
 output_path = '/Users/sandrineveloso/Documents/COURS_ENSEIGNEMENT_FORMATION/FORMATIONS/2103 OPENSCLASSROOM/7_PROJECT7/LIVRABLES/DataScientist_PRJ7/output/'
 path_models_variables = '/Users/sandrineveloso/Documents/COURS_ENSEIGNEMENT_FORMATION/FORMATIONS/2103 OPENSCLASSROOM/7_PROJECT7/LIVRABLES/DataScientist_PRJ7/models_variables/'
-df_output = pd.read_csv(output_path + "submission_kernel.csv")
-df_output.columns = df_output.columns.str.replace("_"," ")
+
+application_test = pd.read_csv(output_path + "application_test_df.csv")
+
+with open(path_models_variables+'feats.pkl', 'rb') as f:
+    feats = pickle.load(f)
+
+# Load of best model explainer
+with open(output_path + "LIME_explainer", 'rb') as in_strm:
+            explainer = dill.load(in_strm)
+
 df = pd.read_csv(output_path + "original_dataframe.csv")
 df.columns = df.columns.str.replace("_"," ")
 
@@ -39,14 +70,9 @@ with open(output_path + 'BestModel_FeatureImportance.pkl', 'rb') as f:
 
 # --------------------------------------------------------------------------------------------------------------
 # DATAFRAME PREPARATION
-df_test = df[df['SK ID CURR'].isin(df_output['SK ID CURR'].tolist())]
-df_test = pd.merge(df_test,df_output,on="SK ID CURR")
+df_test = df[df['SK ID CURR'].isin(application_test['SK_ID_CURR'].tolist())]
+# df_test = pd.merge(df_test,application_test,on="SK ID CURR")
 df_test.columns = df_test.columns.str.replace("_"," ")
-
-df_test["STATUS"] = df_test["TARGET"]
-df_test["STATUS"].loc[df_test["STATUS"] >= model_threshold] = 1
-df_test["STATUS"].loc[df_test["STATUS"] < model_threshold] = 0
-df_test["STATUS"] = df_test["STATUS"].astype(str).replace("1.0","Loan refused").replace("0.0","Loan accepted")
 
 # Categorical variable : identification, cleaning and reencoding :
 with open(output_path + 'cat_feat_list.pkl', 'rb') as f:
@@ -73,7 +99,7 @@ for i in range(len(categorical_features)):
     df_test[categorical_features[i]] = cat
     df_test.drop(list.tolist(),axis=1,inplace=True)
 
-full_cat_list = categorical_features + ['CODE GENDER', 'FLAG OWN CAR', 'FLAG OWN REALTY','STATUS']
+full_cat_list = categorical_features + ['CODE GENDER', 'FLAG OWN CAR', 'FLAG OWN REALTY']
 
 # Some correction of strings : 
 df_test["NAME CONTRACT TYPE"] = df_test["NAME CONTRACT TYPE"].str.replace("Revolvingloans","Revolving loans")
@@ -110,32 +136,31 @@ div[data-testid="metric-container"] > label[data-testid="stMetricLabel"] > div {
 
 # --------------------------------------------------------------------------------------------------------------
 def main():
-    MLFLOW_URI = 'http://127.0.0.1:5000'
 
     with st.spinner('Updating ...'):
+        # ----------------------------------------------------------------------------------------
+        # CLIENT SELECTION and Proba calcul
+        # ----------------------------------------------------------------------------------------
+        MLFLOW_URI = 'http://127.0.0.1:19034/invocations'
+        client_choice = st.sidebar.selectbox("Enter/Select a client number :",application_test['SK_ID_CURR'].unique())
+        prediction = request_prediction(MLFLOW_URI, application_test[feats].loc[application_test['SK_ID_CURR']==client_choice])
+        my_list = [i for i in prediction.values()]
+        client_pred = my_list[0][0][0] # extraction of probability that the client will repay the loan (probability of classe 0)
+        
+        # Threshold have to be corrected too, because it was base on the probability that the client will no repay (probability of classe 1)
+        model_threshold_corr = 1 - model_threshold
+
         st.title('**Prêt à dépenser**: Client profil credit tool')
         info_tab, credit_tab, entities_tab, feat_impt = st.tabs(["Informations", "Score Credits (details)", "Related display","Features importances"])
 
         st.sidebar.title("Summary")
-        # ----------------------------------------------------------------------------------------
-        # CLIENT SELECTION
-        # ----------------------------------------------------------------------------------------
-        # ID_client= df_output['SK_ID°CURR'].unique() - STANDBY remove ?
-        client_choice = st.sidebar.selectbox("Enter/Select a client number :",df_output['SK ID CURR'].unique())
-        client_row = df_output["TARGET"][df_output["SK ID CURR"] == client_choice]
-
-        # Modification of Score value, 1 - technical score ; because it's more logical for a non technical public
-        client_row_corr = 1 - client_row.values
-        # Attention with that modification, threshold have to be corrected too.
-        model_threshold_corr = 1 - model_threshold
-
+        
         # ----------------------------------------------------------------------------------------
         # Value preparation
         # ----------------------------------------------------------------------------------------
         age = convert_age(df_test["DAYS BIRTH"][df_test["SK ID CURR"] == client_choice])
         gender = df_test["CODE GENDER"].loc[df_test["SK ID CURR"] == client_choice].iloc[0]
  
-                
         # ----------------------------------------------------------------------------------------
         # First tab : Profil client
         # ----------------------------------------------------------------------------------------
@@ -176,17 +201,17 @@ def main():
             n3.metric(label ='Amount Annuity',value = df_test["AMT ANNUITY"][df_test["SK ID CURR"] == client_choice])
 
             st.markdown('**Contract Type**: ' + df_test["NAME CONTRACT TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-            if client_row_corr>model_threshold_corr:
-                st.markdown('Client **risk score**: <span style="color:#24962f">**'+ str(float(client_row_corr)) + '**</span>',unsafe_allow_html=True)
+            if client_pred<=model_threshold_corr:
+                st.markdown('Client **risk score**: <span style="color:#d92e2e">**'+ str(round(float(client_pred),2)) + '**</span>',unsafe_allow_html=True)
             else:
-                st.markdown('Client **risk score**: <span style="color:#d92e2e">**'+ str(float(client_row_corr)) + '**</span>',unsafe_allow_html=True)
+                st.markdown('Client **risk score**: <span style="color:#24962f">**'+ str(round(float(client_pred),2)) + '**</span>',unsafe_allow_html=True)
 
             st.markdown('This client risk scoring is borned between **0 to 1**. <br>More the score is close to 1, the lower the financial risk associated with the loan. \
                 Conversely, more the risk score is close to 0, the greater the financial risk associated with the loan.<br>Below and equal to the risk threshold value (<span style="color:#e39c5d">orange</span> area), \
                 the request loan is rejected. Conversely, above the risk threshold value, the request loan is accepted.', unsafe_allow_html=True)
             
             dec = []
-            if client_row.values>=model_threshold:
+            if client_pred<=model_threshold_corr:
                 dec = "The loan request is <b>refused</b>. The client will have difficulty to repay."
             else:
                 dec = "The loan request is <b>accepted</b>. The client will repay the loan."
@@ -196,7 +221,7 @@ def main():
             
             fig = go.Figure(go.Indicator(
                 mode = "gauge+number",
-                value = float(client_row_corr),
+                value = client_pred,
                 number = {'prefix': "Client score: ", 'font': {'size': 20}, 'suffix':"<br><br><br><b>Decision: " + dec},
                 domain = {'x': [0, 1], 'y': [0, 1]},
                 title = {'text': "<b>Credit Score<br>",'font': {'size': 30}},
@@ -208,7 +233,7 @@ def main():
                             {'range': [0, model_threshold_corr-.1], 'color': "rgba(255, 0, 0, 0.55)"},
                             {'range': [model_threshold_corr-.1, model_threshold_corr], 'color': "rgba(255, 136, 0, 0.50)"},
                             {'range': [model_threshold_corr, 1], 'color': "rgba(0, 255, 72, 0.28)"}],
-                        'threshold' : {'line': {'color': "cadetblue", 'width': 3}, 'thickness': .50, 'value': float(client_row_corr)}}))
+                        'threshold' : {'line': {'color': "cadetblue", 'width': 3}, 'thickness': .50, 'value': float(client_pred)}}))
             fig.update_layout(font = {'color': "cadetblue"})
             st.plotly_chart(fig, use_container_width=True)
         # ----------------------------------------------------------------------------------------
@@ -220,8 +245,9 @@ def main():
             # ----------------------------------------------------------
             # Graphic 1 : features distribution 
             # ----------------------------------------------------------
-            st.markdown('This first visual display allow to observe the distribution of all client parameters according to specific categories. \
-                         We advise you particulary to observe the intresting distribution using the **STATUS** as categorical paramaters (Loans accepted or refused).<br>', unsafe_allow_html=True)
+            st.markdown('This first visual display allow to observe the distribution of all client parameters according to specific categories.<br>', unsafe_allow_html=True)
+            # STANDBY 
+            # \We advise you particulary to observe the intresting distribution using the **STATUS** as categorical paramaters (Loans accepted or refused).
             feature = st.selectbox("Feature :", [col for col in df_test.columns if col not in full_cat_list])
             category = st.selectbox("Category :", [col for col in full_cat_list if col not in ["ORGANIZATION TYPE"]],key="CAT1") # We remove "ORGANIZATION TYPE" here 'cause the feature possess too much mode
 
@@ -236,7 +262,7 @@ def main():
 
             fig.add_vline(x=float(df_test[feature].loc[df_test["SK ID CURR"] == client_choice].values), line_dash = 'dash', line_width=2, line_color = 'black')
             # Fake plot for the legend    
-            fig.add_trace(go.Scatter(x=[df_test[feature].mean(), df_test[feature].mean()], y=[0,0], mode='lines', line=dict(color='black', width=2, dash='dash'), name='Current customer positioning'))
+            fig.add_trace(go.Scatter(x=[df_test[feature].mean(), df_test[feature].mean()], y=[0,0], mode='lines', line=dict(color='black', width=2, dash='dash'), name='Current client positioning'))
             st.plotly_chart(fig, use_container_width=True)
 
             # ----------------------------------------------------------
@@ -265,7 +291,7 @@ def main():
                 legend=dict(orientation="h", itemwidth=40, y=-.15, x=.5,xanchor="center", bordercolor="Black", borderwidth=.7, title_text="<b>"+category+"</b> :"))
             fig.add_trace(go.Scattergl(x=[float(df_test[feature1].loc[df_test["SK ID CURR"] == client_choice].values)],\
                 y=[float(df_test[feature2].loc[df_test["SK ID CURR"] == client_choice].values)],mode="markers",
-                            marker=dict(color="black", size=10, symbol="star"), name="Current customer positioning"))
+                            marker=dict(color="black", size=10, symbol="star"), name="Current client positioning"))
             st.plotly_chart(fig, use_container_width=True)
             
             # Add splitting line
@@ -276,7 +302,8 @@ def main():
             # ----------------------------------------------------------
             # Graphic 3 : Current Client feature importance
             # ----------------------------------------------------------
-            
+            explanation = explainer.explain_instance(application_test[feats].loc[application_test['SK_ID_CURR']==client_choice], my_list[0][0], num_features=10)
+            st.markdown(explanation.as_html(), unsafe_allow_html=True)
 
             st.write("---" * 40) # Add splitting line    
             # ----------------------------------------------------------
