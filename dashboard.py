@@ -296,14 +296,13 @@ def main():
             
             # Add splitting line
             st.write("---" * 40)
-
             
         with feat_impt:
             # ----------------------------------------------------------
             # Graphic 3 : Current Client feature importance
             # ----------------------------------------------------------
-            explanation = explainer.explain_instance(application_test[feats].loc[application_test['SK_ID_CURR']==client_choice], my_list[0][0], num_features=10)
-            st.markdown(explanation.as_html(), unsafe_allow_html=True)
+            #explanation = explainer.explain_instance(application_test[feats].loc[application_test['SK_ID_CURR']==client_choice], my_list[0][0], num_features=10)
+            #st.markdown(explanation.as_html(), unsafe_allow_html=True)
 
             st.write("---" * 40) # Add splitting line    
             # ----------------------------------------------------------
