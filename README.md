@@ -15,6 +15,6 @@ The Pipeline allow you to use it in two differents modes : **OPTIMIZATION** & **
 
 The best models is selected according to a local scoring metric named "**Cost FN**". This metric take into account the number of False Negative (FN) and False Positive (FP) producted by the model and select the one who that produces the least. Plus, in that calcul, FN have a higher coefficient (10 times more importante than FP). 
 
-To sum : *Cost FN = 10*FN + FP*"
+To sum : *Cost FN = 10*FN + FP*
 
 **Streamlit's dashbord** is connected to MLFLOW best model API and deployed with Docker. 
