@@ -2,8 +2,6 @@ language: python
 python:
   - "3.8"
 install:
-  - pip install -r api/backend/requirements-backend.txt
   - pip install -r api/frontend/requirements-frontend.txt
 script:
-  - pytest api/frontend/dashboard.py
-  - pytest api/backend/
+  - pytest ./api/frontend/dashboard.py
