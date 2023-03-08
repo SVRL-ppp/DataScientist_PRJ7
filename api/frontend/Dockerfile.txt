@@ -1,0 +1,13 @@
+FROM python:3.8.15
+
+WORKDIR /app
+
+COPY requirements-frontend.txt requirements-frontend.txt
+
+RUN pip install -r requirements-frontend.txt
+
+COPY . /app
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "dashboard.py"]

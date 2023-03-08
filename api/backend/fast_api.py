@@ -1,6 +1,6 @@
 # Importing Necessary modules
 from fastapi import FastAPI 
-from model import model_prediction
+from components.model import model_prediction
 from pydantic import BaseModel
 
 # Declaring our FastAPI instance
@@ -17,4 +17,8 @@ def home():
 @app.post('/predict')
 async def predict(id: ID):
     proba = model_prediction(id.SKID)
-    return float(proba[0][0])
+    return {'proba':float(proba[0][0])}
+
+
+#     proba = model_prediction(id.SKID)
+#     return float(proba[0][0])

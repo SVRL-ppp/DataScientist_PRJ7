@@ -1,15 +1,19 @@
 import pickle
 from pathlib import Path
 import pandas as pd
+import xgboost
+import sklearn
+# import os
 
-path = '../data/'
+# ath = os.path.split(os.getcwd())[0] + '/data/'
+path = '../../data/'
 
-application_test = pd.read_csv(path+"application_test_df.csv")
+application_test = pd.read_csv(path + "application_test_df.csv")
 
-with open(path+'model.pkl', 'rb') as f:
+with open(path + 'model.pkl', 'rb') as f:
     model = pickle.load(f)
 
-with open(path+'feats.pkl', 'rb') as f:
+with open(path + 'feats.pkl', 'rb') as f:
     feats = pickle.load(f)
 
 def model_prediction(SKID):

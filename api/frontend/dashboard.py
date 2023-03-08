@@ -12,21 +12,23 @@ import plotly.graph_objects as go
 import requests
 from lime import lime_tabular
 from streamlit import components
+import xgboost
+import os
+import statsmodels # for docker 
 
 # --------------------------------------------------------------------------------------------------------------
 # API COMMUNICATION
 # --------------------------------------------------------------------------------------------------------------
-# endpoint = 'http://localhost:8000/predict'
-# endpoint = 'http://host.docker.internal:8000/predict'
 # interact with FastAPI endpoint
-endpoint = 'http://host.docker.internal:8000/predict'
 # "http://backend.docker:8000/predict"
-# endpoint = 'http://host.docker.internal:8000/predict' # Specify this path for Dockerization to work
-
+endpoint = 'http://host.docker.internal:8000/predict' # Specify this path for Dockerization to work
+# endpoint = 'http://localhost:8000/predict'
 # --------------------------------------------------------------------------------------------------------------
 # LOAD
 # --------------------------------------------------------------------------------------------------------------
-api_path = '../data/'
+# api_path = '../data/'
+api_path = os.path.split(os.getcwd())[0] + '/data/'
+
 application_test = pd.read_csv(api_path + "application_test_df.csv")
 
 with open(api_path + 'model.pkl', 'rb') as f:
@@ -110,7 +112,7 @@ def main():
                 with st.spinner('Prediction in Progress. Please Wait...'):
                     response = requests.post(endpoint, json=data_api)
                     client_score = response.json() # extraction of probability that the client will repay the loan (probability of classe 0)
-                st.markdown("**Client score**: " + str(round(client_score,3)), unsafe_allow_html=True)
+                st.markdown("**Client score**: " + str(round(client_score['proba'],3)), unsafe_allow_html=True)
 
             # ----------------------------------------------------------------------------------------
             # CLIENT INFORMATION
@@ -151,17 +153,17 @@ def main():
 
 
                     st.markdown('**Contract Type**: ' + df_test["NAME CONTRACT TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                    if float(client_score)<=model_threshold_corr:
-                        st.markdown('Client **risk score**: <span style="color:#d92e2e">**'+ str(round(float(client_score),3)) + '**</span>',unsafe_allow_html=True)
+                    if float(client_score['proba'])<=model_threshold_corr:
+                        st.markdown('Client **risk score**: <span style="color:#d92e2e">**'+ str(round(float(client_score['proba']),3)) + '**</span>',unsafe_allow_html=True)
                     else:
-                        st.markdown('Client **risk score**: <span style="color:#24962f">**'+ str(round(float(client_score),3)) + '**</span>',unsafe_allow_html=True)
+                        st.markdown('Client **risk score**: <span style="color:#24962f">**'+ str(round(float(client_score['proba']),3)) + '**</span>',unsafe_allow_html=True)
 
                     st.markdown('This client risk scoring is borned between **0 to 1**. <br>More the score is close to 1, the lower the financial risk associated with the loan. \
                         Conversely, more the risk score is close to 0, the greater the financial risk associated with the loan.<br>Below and equal to the risk threshold value (<span style="color:#e39c5d">orange</span> area), \
                         the request loan is rejected. Conversely, above the risk threshold value, the request loan is accepted.', unsafe_allow_html=True)
                     
                     dec = []
-                    if float(client_score)<=model_threshold_corr:
+                    if float(client_score['proba'])<=model_threshold_corr:
                         dec = "The loan request is <b>refused</b>. The client will have difficulty to repay."
                     else:
                         dec = "The loan request is <b>accepted</b>. The client will repay the loan."
@@ -169,7 +171,7 @@ def main():
                     
                     fig = go.Figure(go.Indicator(
                         mode = "gauge+number",
-                        value = float(client_score),
+                        value = float(client_score['proba']),
                         number = {'prefix': "Client score: ", 'font': {'size': 20}, 'suffix':"<br><br><br><b>Decision: " + dec},
                         domain = {'x': [0, 1], 'y': [0, 1]},
                         title = {'text': "<b>Credit Score<br>",'font': {'size': 30}},
@@ -181,7 +183,7 @@ def main():
                                     {'range': [0, model_threshold_corr-.1], 'color': "rgba(255, 0, 0, 0.55)"},
                                     {'range': [model_threshold_corr-.1, model_threshold_corr], 'color': "rgba(255, 136, 0, 0.50)"},
                                     {'range': [model_threshold_corr, 1], 'color': "rgba(0, 255, 72, 0.28)"}],
-                                'threshold' : {'line': {'color': "cadetblue", 'width': 3}, 'thickness': .50, 'value': float(client_score)}}))
+                                'threshold' : {'line': {'color': "cadetblue", 'width': 3}, 'thickness': .50, 'value': float(client_score['proba'])}}))
                     fig.update_layout(font = {'color': "cadetblue"})
                     st.plotly_chart(fig, use_container_width=True)
 
@@ -223,14 +225,14 @@ def main():
                     category2 = st.selectbox("Category :", [col for col in categorical_columns if col not in ["ORGANIZATION TYPE"]], key="CAT2")
 
                     # Plot :
-                    fig = px.scatter(df_test, x=feature1, y=feature2, color=category2, width=800, height=600, opacity=0.4,\
-                        trendline="ols", trendline_scope="overall",trendline_color_override="black",\
-                        color_discrete_sequence=px.colors.qualitative.Light24, title='<b>'+feature2+"</b> in function of <b>"+feature1+'</b> according to the <b>'+category2+\
+                    fig = px.scatter(df_test, x=feature1, y=feature2, color=category2, width=800, height=600, opacity=0.4,
+                        trendline="ols", trendline_scope="overall",trendline_color_override="black",
+                        color_discrete_sequence=px.colors.qualitative.Light24, title='<b>'+feature2+"</b> in function of <b>"+feature1+'</b> according to the <b>'+category2+
                             "<br><br><sup><span style='color:blue'>Categorical value for the current client: "+df_test[category2].loc[df_test["SK ID CURR"] == client_choice].iloc[0]+"</sup>")
                     fig.update_traces(marker={'size': 5})
-                    fig.update_layout(yaxis=dict(title_text=feature2),\
-                        xaxis=dict(title_text=feature1),\
-                        titlefont=dict(size =18, color='black'),\
+                    fig.update_layout(yaxis=dict(title_text=feature2),
+                        xaxis=dict(title_text=feature1),
+                        titlefont=dict(size =18, color='black'),
                         legend=dict(orientation="h", itemwidth=40, y=-.15, x=.5,xanchor="center", bordercolor="Black", borderwidth=.7, title_text="<b>"+category+"</b> :"))
                     fig.add_trace(go.Scattergl(x=[float(df_test[feature1].loc[df_test["SK ID CURR"] == client_choice].values)],\
                         y=[float(df_test[feature2].loc[df_test["SK ID CURR"] == client_choice].values)],mode="markers",
@@ -245,15 +247,12 @@ def main():
                     # ----------------------------------------------------------
                     # Brief label name preparation
                     feature_importance["feature"] = feature_importance["feature"].str.replace("_"," ")
-
                     st.header("*Global feature importance*")
-                    st.markdown("Here are display major features involving in the global credit scoring client classification (n.b. acceptance/rejection).\
-                        Select the number of feature to display (n.b. the recommended value is **10 or 15**.)",unsafe_allow_html=True)
+                    st.markdown("Here are display major features involving in the global credit scoring client classification (n.b. acceptance/rejection).",unsafe_allow_html=True)
 
                     # Allowing the consellor to select the number of features 
-                    number = range(5,50,5)
-                    number = st.selectbox("Number of feature to display:", number)
-
+                    # number = range(5,50,5) # Suppression du selectbox pour réduire le temps de chargement
+                    number = 10
                     best_features = feature_importance[["feature", "importance"]].sort_values(by="importance", ascending=False)[:number]
                     set_color = px.colors.sample_colorscale("turbo", [n/(number -1) for n in range(number)])
 
@@ -271,26 +270,18 @@ def main():
                         )
                     st.plotly_chart(fig, use_container_width=True)
                     st.write("---" * 40) # Add splitting line  
+
                     # ----------------------------------------------------------
                     # Graphic 4 : Current Client feature importance
                     # ----------------------------------------------------------
-                    
                     st.header("*Local feature importance*")
                     st.markdown("In this section, the **major feature** involved in credit acceptance or rejection are display **for the selected client**.<br> \
                             You will be able to see wich feature and the exact value mainly responsable for the credit status.<br>\
-                            In blue are indicated feature influencing in credit acceptance and in orange the rejection.\
-                            Like before, you can set the number of display (from 5 to 25).",unsafe_allow_html=True)
-
+                            In blue are indicated feature influencing in credit acceptance and in orange the rejection.",unsafe_allow_html=True)
                     id_numb = application_test[feats].loc[application_test['SK_ID_CURR']==client_choice].index[0]
-
-                    number = range(5,25,5)
-                    number = st.selectbox("Number of feature to display:", number) 
-
-                    explanation = explainer.explain_instance(np.array(application_test[feats])[id_numb], model.predict_proba, num_features=number)
+                    explanation = explainer.explain_instance(np.array(application_test[feats])[id_numb], model.predict_proba, num_features=10)
                     html_lime=explanation.as_html()
-
                     components.v1.html(html_lime, width=1000, height=350, scrolling=True)
-
                     st.write("---" * 40) # Add splitting line
 
 if __name__ == '__main__':
