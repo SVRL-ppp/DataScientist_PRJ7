@@ -1,9 +1,5 @@
 name: Python package and Pytest
-# on: [push]
-on:
-  push:
-    branches:
-      - 'main'
+on: [push]
 
 jobs:
   build:
@@ -43,5 +39,4 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest
-        # pip install pytest-cov
-          pytest > ./tests/pytest_output.log
+          pytest
