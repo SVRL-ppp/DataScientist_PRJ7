@@ -17,3 +17,9 @@ def test_read_main():
 def test_error():
     response = client.post("/predict_don'texist",  follow_redirects=True)
     assert response.status_code == 404
+
+# Test of API prediction format
+def test_prediction_response():
+    response = client.post("/predict", follow_redirects=True)
+    assert response.status_code == 200
+    # In function of models ! the output can change so ! == here
