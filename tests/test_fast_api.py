@@ -19,7 +19,7 @@ def test_error():
     assert response.status_code == 404
 
 # Test of API prediction format
-def test_prediction_response():
-    response = client.post("/predict", follow_redirects=True)
+def test_prediction():
+    response = client.post("/predict", json={"SKID":"100001"},follow_redirects=True)
     assert response.status_code == 200
     # In function of models ! the output can change so ! == here
