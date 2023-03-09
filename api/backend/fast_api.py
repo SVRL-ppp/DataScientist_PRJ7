@@ -18,7 +18,3 @@ def home():
 async def predict(id: ID):
     proba = model_prediction(id.SKID)
     return {'proba':float(proba[0][0])}
-
-
-#     proba = model_prediction(id.SKID)
-#     return float(proba[0][0])

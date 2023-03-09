@@ -3,11 +3,9 @@ from pathlib import Path
 import pandas as pd
 import xgboost
 import sklearn
-# import os
+import os
 
-# ath = os.path.split(os.getcwd())[0] + '/data/'
-path = '../../data/'
-
+path = os.path.split(os.path.split(os.path.dirname(os.path.realpath(__file__)))[0])[0] + '/data/'
 application_test = pd.read_csv(path + "application_test_df.csv")
 
 with open(path + 'model.pkl', 'rb') as f:
