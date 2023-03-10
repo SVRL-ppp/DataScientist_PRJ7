@@ -4,7 +4,7 @@ services:
     build:
       context: ./backend
       dockerfile: ./Dockerfile.txt
-    image: srv-backend:latest
+    image: sandrinerv/srv-backend:latest
     ports:
       - "8000:8000"
     volumes:
@@ -17,7 +17,7 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile.txt
-    image: srv-frontend:latest
+    image: sandrinerv/srv-frontend:latest
     ports:
       - "8501:8501"
     depends_on:
