@@ -29,7 +29,7 @@ endpoint = 'http://host.docker.internal:8000/predict' # Specify this path for Do
 # api_path = '../data/'
 api_path = os.path.split(os.getcwd())[0] + '/data/'
 
-# application_test = pd.read_csv(api_path + "application_test_df.csv")
+application_test = pd.read_csv(api_path + "application_test_df.csv")
 
 with open(api_path + 'model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -100,7 +100,7 @@ def main():
             # ----------------------------------------------------------------------------------------
             # ID CLIENT SELECTION 
             # ----------------------------------------------------------------------------------------
-            client_choice = st.selectbox("Enter/Select a client number :",df_test['SK_ID_CURR'].unique())
+            client_choice = st.selectbox("Enter/Select a client number :",application_test['SK_ID_CURR'].unique())
             data_api = {'SKID': str(client_choice)}
             # Threshold have to be corrected too, because it was base on the probability that the client will no repay (probability of classe 1)
             model_threshold_corr = 1 - .4 # STANDBY TEMPORAIRE
