@@ -4,6 +4,7 @@ from fastapi import status
 sys.path.append('api/backend/')
 
 from fast_api import app
+import json
 
 client = TestClient(app)
 
@@ -17,9 +18,9 @@ def test_read_main():
 def test_error():
     response = client.post("/predict_don'texist",  follow_redirects=True)
     assert response.status_code == 404
-
+    
 # Test of API prediction format
-def test_prediction():
-    response = client.post("/predict", json={"SKID":"100001"},follow_redirects=True)
-    assert response.status_code == 200
-    # In function of models ! the output can change so ! == here
+def test_prediction_fake_ID():
+    response = client.post("/predict", data=json.dumps({'SKID': "N1N"})) # json={"SKID":"100001"}
+    assert response.status_code == 400
+
