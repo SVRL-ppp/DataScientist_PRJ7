@@ -21,6 +21,6 @@ def test_error():
     
 # Test of API prediction format
 def test_prediction_fake_ID():
-    response = client.post("/predict", data=json.dumps({'SKID': "N1N"})) # json={"SKID":"100001"}
+    response = client.post("/predict", data=json.dumps({'SKID': "N1N"}), follow_redirects=False) # json={"SKID":"100001"}
     assert response.status_code == 400
 
