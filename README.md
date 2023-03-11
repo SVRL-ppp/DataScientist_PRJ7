@@ -21,5 +21,13 @@ To sum : *Cost FN = 10xFN + FP*
 
 ## Détails des fichiers
 
+* fastapi : API permettant le scoring client (conteneur docker)
+* models_storage : modèle optimisés employés dans le pipeline de modélisation
+* output : fichier de sortie du pipeline de modélisation
+* streamlit : API dashboard streamlit (conteneur docker)
+* tests : fichier de tests
 * data_drift : sorties au format html de l'analyse de la dérive par la librairie evidently
+
+* Veloso_Sandrine_1_notebook_exploratoire_012023.ipynb : Notebook jupyter contenant le pipeline de modélisation
+
 
