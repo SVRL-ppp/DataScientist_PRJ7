@@ -15,7 +15,9 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 
-EXPOSE 8000
+EXPOSE 8000 80
+
+ENV PORT 80
 
 HEALTHCHECK CMD curl --fail http://localhost: 8000/_stcore/health
 

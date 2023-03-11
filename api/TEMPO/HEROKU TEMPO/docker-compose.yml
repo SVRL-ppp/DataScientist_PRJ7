@@ -4,12 +4,12 @@ services:
     build:
       context: ./backend
       dockerfile: ./Dockerfile.txt
-    image: sandrinerv/ocr7-back:latest
-    restart: unless-stopped
-    volumes:
-      - hi:/data
+    image: sandrinerv/srv-backend:latest
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./data:/data
     networks:
       - project_network
 
@@ -17,23 +17,16 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile.txt
-    image: srvpretadepenser.azurecr.io/ocr7-front:v1
-    restart: unless-stopped
+    image: sandrinerv/srv-frontend:latest
     ports:
-      - "80:80"
+      - "8501:8501"
     depends_on:
       - backend
     volumes:
-      - hi:/data
+      - ./frontend:/app/frontend
+      - ./data:/data
     networks:
       - project_network
-
-volumes:
-  hi:
-    driver: azure_file
-    driver_opts:
-      share_name: ocr7-fileshare
-      storage_account_name: srvocr7
 
 networks:
   project_network:

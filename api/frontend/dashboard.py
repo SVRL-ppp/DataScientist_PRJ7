@@ -21,7 +21,7 @@ import statsmodels # for docker
 # --------------------------------------------------------------------------------------------------------------
 # interact with FastAPI endpoint
 # "http://backend.docker:8000/predict"
-endpoint = 'http://host.docker.internal:8000/predict' # Specify this path for Dockerization to work
+endpoint = 'http://host.docker.internal:80/predict' # Specify this path for Dockerization to work
 # endpoint = 'http://localhost:8000/predict'
 # --------------------------------------------------------------------------------------------------------------
 # LOAD

@@ -1,3 +1,13 @@
 brouillon.ipynb
 evidently.ipynb
 mlrun_store/
+output/.DS_Store
+api/frontend/.DS_Store
+api/data/.DS_Store
+.DS_Store
+*.pyc
+output/data_drift/production_data_drift_n=20000.html
+.pytest_cache
+/output
+/data_drift/production_data_drift_n=20000.html
+Note méthodologique.docx
