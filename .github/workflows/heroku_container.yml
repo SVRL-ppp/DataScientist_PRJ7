@@ -5,26 +5,6 @@ name: Deploy to heroku.
 on:
   [push]
 
-#set environment variables 
-env:
-  HEROKU_API_KEY: ${{ secrets.e8d6aa64-ef9b-4eaf-8df5-aea916243555 }}
-  APP_NAME: ${{ 'ocr7-dashboard-app' }}
-  PROJECT_PATH: ./streamlit
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
-        with:
-          appdir: fastapi
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: carpriceapi #Must be unique in Heroku
-          heroku_email: ifeanyinneji777@gmail.com 
-          usedocker: true
-          stack: container
-
 jobs:
   deploy:
     name: Deploy to Heroku
