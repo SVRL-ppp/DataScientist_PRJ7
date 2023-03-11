@@ -18,3 +18,16 @@ The best models is selected according to a local scoring metric named "**Cost FN
 To sum : *Cost FN = 10xFN + FP*
 
 **Streamlit's dashbord** is connected to MLFLOW best model API and deployed with Docker. 
+
+## Détails des fichiers
+
+* fastapi : API permettant le scoring client (conteneur docker)
+* models_storage : modèle optimisés employés dans le pipeline de modélisation
+* output : fichier de sortie du pipeline de modélisation
+* streamlit : API dashboard streamlit (conteneur docker)
+* tests : fichier de tests
+* data_drift : sorties au format html de l'analyse de la dérive par la librairie evidently
+
+* Veloso_Sandrine_1_notebook_exploratoire_012023.ipynb : Notebook jupyter contenant le pipeline de modélisation
+
+
