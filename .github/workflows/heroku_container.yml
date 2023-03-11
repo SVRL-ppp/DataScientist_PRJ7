@@ -12,18 +12,32 @@ env:
   PROJECT_PATH: ./streamlit
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          appdir: fastapi
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: carpriceapi #Must be unique in Heroku
+          heroku_email: ifeanyinneji777@gmail.com 
+          usedocker: true
+          stack: container
+
+jobs:
   deploy:
     name: Deploy to Heroku
     runs-on: ubuntu-latest
-    steps:
+    steps: 
 
     # Clone the repository
     - name: Checkout
       uses: actions/checkout@v2
 
     # Build Docker image
-    - name: Docker build
-      run : docker buildx build --load --platform linux/amd64 -t registry.heroku.com/ocr7-dashboard-app/web .
+    - name: Build image
+      run : docker build -t registry.heroku.com/ocr7-dashboard-app/web .
       # run: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
 
     # Push the Docker image to Heroku Container Registry

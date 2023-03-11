@@ -1,7 +1,7 @@
 import sys
 from fastapi.testclient import TestClient
 from fastapi import status
-sys.path.append('api/backend/')
+sys.path.append('fastapi')
 
 from fast_api import app
 import json

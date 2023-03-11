@@ -11,3 +11,4 @@ output/data_drift/production_data_drift_n=20000.html
 /output
 /data_drift/production_data_drift_n=20000.html
 Note méthodologique.docx
+FastAPI/__pycache__

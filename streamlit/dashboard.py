@@ -247,7 +247,7 @@ def main():
                 best_features = feature_importance[["feature", "importance"]].sort_values(by="importance", ascending=False)[:number]
                 set_color = px.colors.sample_colorscale("turbo", [n/(number -1) for n in range(number)])
 
-                fig = px.bar(best_features, y='feature', x='importance', height=500, width=600,\
+                fig = px.bar(best_features, y='feature', x='importance', height=600, width=800,\
                     hover_name="feature", title= "<b>Global features importances</b> : Top " + str(number) + " features",\
                     color='feature', color_discrete_sequence=set_color)
                 fig.update_layout(yaxis=dict(title_text="<b>Feature"),\
