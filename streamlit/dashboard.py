@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 
 # --------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -37,9 +38,8 @@ def main():
         # ----------------------------------------------------------------------------------------
         col1, col2 = st.columns([1, 4])
         with col1:
-            st.title("empty")
-            #logo = Image.open('logo.png')
-            #st.image(logo,width=150,output_format='PNG')
+            logo = Image.open('logo.png')
+            st.image(logo,width=150,output_format='PNG')
         with col2:
             st.title('**Prêt à dépenser**: Client profil credit tool')
 
