@@ -23,11 +23,11 @@ jobs:
 
     # Build Docker image
     - name: Docker build
-      run : docker buildx build --load --platform linux/amd64 -t registry.heroku.com/ocr7-fastapi-app/web .
+      run : docker buildx build --load --platform linux/amd64 -t registry.heroku.com/ocr7-dashboard-app/web .
       # run: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
 
     # Push the Docker image to Heroku Container Registry
     - name: Publish
       run: |
-        docker push registry.heroku.com/ocr7-fastapi-app/web:latest                
+        docker push registry.heroku.com/ocr7-dashboard-app/web:latest                
         heroku container:release web -a ocr7-dashboard-app 
