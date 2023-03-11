@@ -1,27 +1,16 @@
-# Your workflow name.
-name: Deploy to heroku.
-
-# Run workflow on every push to master branch.
+name: Deploy
 on:
-  [push]
-
+  push:
+    branches:
+      - master
 jobs:
-  deploy:
-    name: Deploy to Heroku
+  build:
     runs-on: ubuntu-latest
-    steps: 
-
-    # Clone the repository
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    # Build Docker image
-    - name: Build image
-      run : docker build -t registry.heroku.com/ocr7-dashboard-app/web .
-      # run: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
-
-    # Push the Docker image to Heroku Container Registry
-    - name: Publish
-      run: |
-        docker push registry.heroku.com/ocr7-dashboard-app/web:latest                
-        heroku container:release web -a ocr7-dashboard-app 
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.13 # This is the action
+        with:
+          heroku_api_key: ${{secrets.e8d6aa64-ef9b-4eaf-8df5-aea916243555}}
+          heroku_app_name: "ocr7-dashboard-app2" #Must be unique in Heroku
+          heroku_email: "sandrine.veloso@gmail.com"
+          appdir: "streamlit"

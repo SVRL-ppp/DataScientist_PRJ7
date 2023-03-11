@@ -14,7 +14,7 @@ def home():
     return {"health_check":"OK"}
 
 # Defining path operation for /name endpoint
-#@app.post('/predict')
-#async def predict(id: ID):
-#    proba = model_prediction(id.SKID)
-#    return {'proba':float(proba[0][0])}
+@app.post('/predict')
+async def predict(id: ID):
+    proba = model_prediction(id.SKID)
+    return {'proba':float(proba[0][0])}
