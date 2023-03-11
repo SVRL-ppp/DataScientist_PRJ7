@@ -18,3 +18,8 @@ The best models is selected according to a local scoring metric named "**Cost FN
 To sum : *Cost FN = 10xFN + FP*
 
 **Streamlit's dashbord** is connected to MLFLOW best model API and deployed with Docker. 
+
+## Détails des fichiers
+
+* data_drift : sorties au format html de l'analyse de la dérive par la librairie evidently
+
