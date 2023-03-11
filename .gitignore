@@ -12,3 +12,4 @@ output/data_drift/production_data_drift_n=20000.html
 /data_drift/production_data_drift_n=20000.html
 Note méthodologique.docx
 FastAPI/__pycache__
+.Rhistory
