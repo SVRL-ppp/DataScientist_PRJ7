@@ -5,15 +5,14 @@ name: Deploy to heroku.
 on:
   [push]
 
+working_directory: /streamlit
+
 #set environment variables 
 env:
   HEROKU_API_KEY: ${{ secrets.e8d6aa64-ef9b-4eaf-8df5-aea916243555 }}
   APP_NAME: ${{ 'ocr7-dashboard-app' }}
 
 jobs:
-  - name: Move to the repository
-    uses: cd ./streamlit/
-
   deploy:
     name: Deploy to Heroku
     runs-on: ubuntu-latest
