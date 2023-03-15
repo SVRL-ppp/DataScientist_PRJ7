@@ -1,12 +1,16 @@
 import pickle
 import pandas as pd
 import xgboost
+import os
 import sklearn
 
-path = 'data/'
+# path = os.path.split(os.path.split(os.path.dirname(os.path.realpath(__file__)))[0])[0] + '/data/'
+path = "data/"
 application_test = pd.read_csv(path + "application_test_df.csv")
+
 with open(path + 'model.pkl', 'rb') as f:
     model = pickle.load(f)
+
 with open(path + 'feats.pkl', 'rb') as f:
     feats = pickle.load(f)
 

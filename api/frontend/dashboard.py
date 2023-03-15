@@ -16,15 +16,14 @@ import xgboost
 import os
 import statsmodels # for docker 
 
-
-endpoint = 'https://ocr7-fastapi-app.herokuapp.com'
+endpoint = 'https://ocr7-fastapi.herokuapp.com/predict'
 
 # --------------------------------------------------------------------------------------------------------------
 # LOAD
 # --------------------------------------------------------------------------------------------------------------
 api_path = './data/'
 df_test = pd.read_csv(api_path + "df_test_st_support.csv")
-# application_test = pd.read_csv(api_path + "application_test_df.csv")
+application_test = pd.read_csv(api_path + "application_test_df.csv")
 
 with open(api_path + 'model.pkl', 'rb') as f:
     model = pickle.load(f)
@@ -43,7 +42,6 @@ with open(api_path+'bestmodel_threshold.pkl', 'rb') as f:
 # Load of best model explainer
 with open(api_path + "LIME_explainer", 'rb') as in_strm:
     explainer = dill.load(in_strm)
-
 
 # --------------------------------------------------------------------------------------------------------------
 # FUNCTIONS
@@ -96,7 +94,6 @@ def main():
             client_choice = st.selectbox("Enter/Select a client number :",df_test['SK ID CURR'].unique())
             data_api = {'SKID': str(client_choice)}
             model_threshold_corr = 1 - model_threshold
-
             # ----------------------------------------------------------------------------------------
             # SCORING CLIENT PREDICTION
             # ----------------------------------------------------------------------------------------
@@ -113,26 +110,26 @@ def main():
                 # CLIENT INFORMATION
                 # ----------------------------------------------------------------------------------------
                 with info_tab:
-                        st.header("*Profil client*")
-                        st.markdown('*In this section, you will find all the main descriptive information of the client.  In order to have with the credit score of said customer, \
+                    st.header("*Profil client*")
+                    st.markdown('*In this section, you will find all the main descriptive information of the client.  In order to have with the credit score of said customer, \
                                     please refer to the following tab (Score Credits (details)) or to the vertical bar on the right.*', unsafe_allow_html=True)
-                        st.write("---" * 40)
-                        st.markdown('  ')
-                        age = convert_age(df_test["DAYS BIRTH"][df_test["SK ID CURR"] == client_choice])
-                        st.markdown('**Age**: ' + str(int(age.values)) + " years", unsafe_allow_html=True)
-                        gender = df_test["CODE GENDER"].loc[df_test["SK ID CURR"] == client_choice].iloc[0]
-                        st.markdown('**Gender**: ' + gender, unsafe_allow_html=True)
-                        st.markdown("**Occupation type**: " + df_test["OCCUPATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.markdown('**Family status** : ' + df_test["NAME FAMILY STATUS"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.write("---" * 40)
-                        st.markdown('**Client own a realty**: ' + df_test["FLAG OWN REALTY"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.markdown("**Client own a car**: " + df_test["FLAG OWN CAR"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.write("---" * 40)
-                        st.markdown("**Housing type**: " + df_test["NAME HOUSING TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.markdown("**Organization type**: " + df_test["ORGANIZATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.markdown("**Education Type**: " + df_test["NAME EDUCATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.markdown("**Type Suite**: " + df_test["NAME TYPE SUITE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
-                        st.write("---" * 40)
+                    st.write("---" * 40)
+                    st.markdown('  ')
+                    age = convert_age(df_test["DAYS BIRTH"][df_test["SK ID CURR"] == client_choice])
+                    st.markdown('**Age**: ' + str(int(age.values)) + " years", unsafe_allow_html=True)
+                    gender = df_test["CODE GENDER"].loc[df_test["SK ID CURR"] == client_choice].iloc[0]
+                    st.markdown('**Gender**: ' + gender, unsafe_allow_html=True)
+                    st.markdown("**Occupation type**: " + df_test["OCCUPATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.markdown('**Family status** : ' + df_test["NAME FAMILY STATUS"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.write("---" * 40)
+                    st.markdown('**Client own a realty**: ' + df_test["FLAG OWN REALTY"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.markdown("**Client own a car**: " + df_test["FLAG OWN CAR"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.write("---" * 40)
+                    st.markdown("**Housing type**: " + df_test["NAME HOUSING TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.markdown("**Organization type**: " + df_test["ORGANIZATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.markdown("**Education Type**: " + df_test["NAME EDUCATION TYPE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.markdown("**Type Suite**: " + df_test["NAME TYPE SUITE"].loc[df_test["SK ID CURR"] == client_choice].iloc[0], unsafe_allow_html=True)
+                    st.write("---" * 40)
 
                 with credit_tab:
                     # ----------------------------------------------------------
@@ -279,8 +276,8 @@ def main():
                     st.markdown("In this section, the **major feature** involved in credit acceptance or rejection are display **for the selected client**.<br> \
                             You will be able to see wich feature and the exact value mainly responsable for the credit status.<br>\
                             In blue are indicated feature influencing in credit acceptance and in orange the rejection.",unsafe_allow_html=True)
-                    id_numb = df_test[feats].loc[df_test['SK_ID_CURR']==client_choice].index[0]
-                    explanation = explainer.explain_instance(np.array(df_test[feats])[id_numb], model.predict_proba, num_features=10)
+                    id_numb = application_test[feats].loc[application_test['SK_ID_CURR']==client_choice].index[0]
+                    explanation = explainer.explain_instance(np.array(application_test[feats])[id_numb], model.predict_proba, num_features=10)
                     html_lime=explanation.as_html()
                     components.v1.html(html_lime, width=1000, height=350, scrolling=True)
                     st.write("---" * 40) # Add splitting line
