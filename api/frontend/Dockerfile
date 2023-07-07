@@ -1,14 +1,16 @@
-FROM --platform=linux/amd64 node:14.17.0-alpine
+# To avoid any bug from Github, Dockerfile had been unactivated by adding "#" in front of all lines
+# To use this file, remove all "#" bellow
 
-FROM python:3.8.15
+#FROM --platform=linux/amd64 node:14.17.0-alpine
+#FROM python:3.8.15
 
-CMD mkdir /stapp
-COPY . /stapp
+#CMD mkdir /stapp
+#COPY . /stapp
 
-WORKDIR /stapp
+#WORKDIR /stapp
 
-EXPOSE 8501
+#EXPOSE 8501
 
-RUN pip install -r requirements.txt
+#RUN pip install -r requirements.txt
 
-CMD streamlit run dashboard.py --server.port $PORT
+#CMD streamlit run dashboard.py --server.port $PORT

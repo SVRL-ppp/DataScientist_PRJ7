@@ -1,18 +1,21 @@
-FROM --platform=linux/amd64 node:14.17.0-alpine
-FROM python:3.8
+# To avoid any bug from Github, Dockerfile had been unactivated by adding "#" in front of all lines
+# To use this file, remove all "#" bellow
 
-RUN mkdir /backend 
+#FROM --platform=linux/amd64 node:14.17.0-alpine
+#FROM python:3.8
 
-RUN chmod -R 777 /backend
+#RUN mkdir /backend 
 
-COPY requirements-backend.txt /backend/requirements-backend.txt
+#RUN chmod -R 777 /backend
 
-WORKDIR /backend
+#COPY requirements-backend.txt /backend/requirements-backend.txt
 
-RUN pip install -r requirements-backend.txt
+#WORKDIR /backend
 
-COPY . /backend
+#RUN pip install -r requirements-backend.txt
 
-ARG PORT=5000
+#COPY . /backend
 
-CMD uvicorn fast_api:app --host 0.0.0.0 --port $PORT --reload
+#ARG PORT=5000
+
+#CMD uvicorn fast_api:app --host 0.0.0.0 --port $PORT --reload
